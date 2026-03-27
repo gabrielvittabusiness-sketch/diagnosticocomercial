@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Comercial</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a18;min-height:100vh;padding:0 0 60px}
+.header{background:#fff;border-bottom:1px solid #e0ddd6;padding:28px 32px 24px}
+.header h1{font-size:22px;font-weight:500;margin-bottom:4px}
+.header p{font-size:14px;color:#6b6b67;line-height:1.6}
+.progress-bar{height:3px;background:#e0ddd6;position:relative;overflow:hidden}
+.progress-fill{height:100%;background:#1a6ef5;transition:width .4s ease;width:0%}
+.container{max-width:720px;margin:0 auto;padding:24px 16px}
+
+/* Identificação */
+.id-block{background:#fff;border:1px solid #e0ddd6;border-radius:12px;padding:20px 24px;margin-bottom:16px;display:flex;flex-direction:column;gap:14px}
+.id-block-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:2px;display:flex;align-items:center;gap:8px}
+.id-block-title span{font-size:11px;font-weight:400;color:#6b6b67}
+.id-row{display:flex;gap:14px;flex-wrap:wrap}
+.id-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:200px}
+.id-field label{font-size:12px;font-weight:500;color:#6b6b67}
+.id-field input{border:1px solid #d0cec7;border-radius:8px;padding:9px 12px;font-size:14px;background:#f9f8f6;color:#1a1a18;outline:none;transition:border .15s}
+.id-field input:focus{border-color:#1a6ef5;background:#fff}
+.id-field input::placeholder{color:#b0ada6}
+
+.block{background:#fff;border:1px solid #e0ddd6;border-radius:12px;margin-bottom:16px;overflow:hidden}
+.block-header{padding:18px 24px 14px;border-bottom:1px solid #e0ddd6;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+.block-tag{font-size:11px;font-weight:500;letter-spacing:.5px;padding:3px 10px;border-radius:20px;background:#e8f0fe;color:#1a6ef5}
+.block-title{font-size:16px;font-weight:500;flex:1}
+.block-insight{font-size:12px;color:#6b6b67;margin-top:2px}
+.block-chevron{color:#aaa;transition:transform .25s;font-size:14px}
+.block-body{padding:20px 24px;display:flex;flex-direction:column;gap:18px}
+.block-body.collapsed{display:none}
+.q-label{font-size:13px;font-weight:500;margin-bottom:8px;color:#1a1a18}
+.q-hint{font-size:12px;color:#6b6b67;margin-top:-4px;margin-bottom:8px;line-height:1.5}
+.radio-group{display:flex;flex-wrap:wrap;gap:8px}
+.radio-group label{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid #d0cec7;border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;background:#f9f8f6}
+.radio-group label:hover{border-color:#888;background:#fff}
+.radio-group input{display:none}
+.radio-group label.sel{border-color:#1a6ef5;color:#1a6ef5;background:#e8f0fe}
+input[type=range]{width:100%;accent-color:#1a6ef5;height:4px}
+.range-row{display:flex;justify-content:space-between;font-size:11px;color:#aaa;margin-top:4px}
+.range-val{font-size:18px;font-weight:500;color:#1a6ef5;text-align:center;margin-bottom:6px}
+.btn-generate{width:100%;padding:16px;background:#1a1a18;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.btn-generate:hover{opacity:.85}
+.result{background:#fff;border:1px solid #e0ddd6;border-radius:12px;padding:28px;display:none;margin-top:16px}
+.result-identity{text-align:center;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #e0ddd6}
+.result-identity .ri-name{font-size:18px;font-weight:600;color:#1a1a18}
+.result-identity .ri-company{font-size:14px;color:#6b6b67;margin-top:2px}
+.result-identity .ri-date{font-size:12px;color:#aaa;margin-top:4px}
+.score-circle{width:120px;height:120px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;border:3px solid}
+.score-num{font-size:36px;font-weight:500;line-height:1}
+.score-label{font-size:12px;color:#6b6b67;margin-top:2px}
+.score-status{font-size:20px;font-weight:500;text-align:center;margin-bottom:6px}
+.score-desc{font-size:14px;color:#6b6b67;text-align:center;margin-bottom:24px;line-height:1.6}
+.blocks-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.block-score{padding:12px 14px;border-radius:8px;border:1px solid #e0ddd6}
+.bs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.bs-name{font-size:12px;font-weight:500}
+.bs-pct{font-size:14px;font-weight:500}
+.bs-bar{height:4px;background:#e0ddd6;border-radius:2px;overflow:hidden}
+.bs-fill{height:100%;border-radius:2px;transition:width .6s}
+.section-title{font-size:15px;font-weight:500;margin-bottom:10px;margin-top:4px}
+.pain-item,.sug-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.5}
+.pain-item{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.sug-item{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.icon{font-size:15px;flex-shrink:0;margin-top:1px}
+
+.btn-row{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+.btn-pdf{flex:1;padding:14px;background:#1a6ef5;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-pdf:hover{opacity:.85}
+.btn-reset{flex:1;padding:12px;background:#f5f5f3;color:#6b6b67;border:1px solid #e0ddd6;border-radius:10px;font-size:13px;cursor:pointer}
+
+@media(max-width:500px){.blocks-grid{grid-template-columns:1fr}.btn-row{flex-direction:column}}
+
+/* PDF print styles */
+@media print{
+  body{background:#fff;padding:0}
+  .header,.progress-bar,.id-block,.block,.btn-generate,.btn-row{display:none!important}
+  .container{padding:0;max-width:100%}
+  .result{display:block!important;border:none;padding:16px}
+  .result-identity{margin-bottom:16px;padding-bottom:16px}
+  .blocks-grid{grid-template-columns:1fr 1fr}
+  .pain-item,.sug-item{break-inside:avoid}
+  .btn-pdf,.btn-reset{display:none!important}
+  @page{margin:20mm}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Diagnóstico Comercial</h1>
+  <p>Responda com honestidade. Não há certo ou errado — o objetivo é mapear onde estão as maiores oportunidades de melhoria.</p>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+<div class="container" id="form-area">
+
+<!-- Identificação -->
+<div class="id-block">
+  <div class="id-block-title">Identificação <span>Preenchimento opcional</span></div>
+  <div class="id-row">
+    <div class="id-field">
+      <label for="inp-nome">Seu nome</label>
+      <input type="text" id="inp-nome" placeholder="Ex.: João Silva">
+    </div>
+    <div class="id-field">
+      <label for="inp-empresa">Empresa</label>
+      <input type="text" id="inp-empresa" placeholder="Ex.: Agência X">
+    </div>
+  </div>
+</div>
+
+<!-- M1 -->
+<div class="block" id="b1">
+  <div class="block-header" onclick="toggle('b1')">
+    <span class="block-tag">M1</span>
+    <div><div class="block-title">Mentalidade e Metas</div><div class="block-insight">Clareza de onde quer chegar</div></div>
+    <span class="block-chevron" id="chev-b1">▲</span>
+  </div>
+  <div class="block-body" id="body-b1">
+    <div>
+      <div class="q-label">Tem meta de faturamento mensal definida?</div>
+      <div class="radio-group" data-q="m1_meta">
+        <label><input type="radio" name="m1_meta" value="3">Sim, com número claro</label>
+        <label><input type="radio" name="m1_meta" value="1">Sim, mas vago</label>
+        <label><input type="radio" name="m1_meta" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Como a meta foi definida?</div>
+      <div class="radio-group" data-q="m1_como">
+        <label><input type="radio" name="m1_como" value="3">Com base em dados históricos</label>
+        <label><input type="radio" name="m1_como" value="2">Por intuição fundamentada</label>
+        <label><input type="radio" name="m1_como" value="1">Chute / sem critério</label>
+        <label><input type="radio" name="m1_como" value="0">Não tem meta</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Conhece o ticket médio do negócio?</div>
+      <div class="q-hint">Valor total de vendas ÷ número de clientes atendidos no período.</div>
+      <div class="radio-group" data-q="m1_ticket">
+        <label><input type="radio" name="m1_ticket" value="3">Sim, sei exatamente</label>
+        <label><input type="radio" name="m1_ticket" value="1">Tenho uma estimativa</label>
+        <label><input type="radio" name="m1_ticket" value="0">Não sei</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Sabe quantos leads são necessários para bater a meta?</div>
+      <div class="radio-group" data-q="m1_leads">
+        <label><input type="radio" name="m1_leads" value="3">Sim, calculo isso</label>
+        <label><input type="radio" name="m1_leads" value="1">Nunca pensei nisso</label>
+        <label><input type="radio" name="m1_leads" value="0">Não tenho meta</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Sente que tem previsibilidade comercial? (0 = nenhuma, 10 = total)</div>
+      <div class="range-val" id="val_m1_prev">5</div>
+      <input type="range" min="0" max="10" value="5" data-q="m1_prev" oninput="updRange(this,'val_m1_prev')">
+      <div class="range-row"><span>0 — nenhuma</span><span>10 — total</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- M2 -->
+<div class="block" id="b2">
+  <div class="block-header" onclick="toggle('b2')">
+    <span class="block-tag">M2</span>
+    <div><div class="block-title">Velocidade de Atendimento (SLA)</div><div class="block-insight">Demora = perda de receita</div></div>
+    <span class="block-chevron" id="chev-b2">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b2">
+    <div>
+      <div class="q-label">Qual o tempo médio de resposta ao primeiro contato?</div>
+      <div class="radio-group" data-q="m2_tempo">
+        <label><input type="radio" name="m2_tempo" value="3">Até 5 minutos</label>
+        <label><input type="radio" name="m2_tempo" value="2">Até 30 minutos</label>
+        <label><input type="radio" name="m2_tempo" value="1">1 hora ou mais</label>
+        <label><input type="radio" name="m2_tempo" value="0">No mesmo dia, sem hora definida</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Todos os leads recebem resposta no dia em que entram em contato?</div>
+      <div class="radio-group" data-q="m2_resp">
+        <label><input type="radio" name="m2_resp" value="3">Sim, sempre</label>
+        <label><input type="radio" name="m2_resp" value="1">Na maioria das vezes</label>
+        <label><input type="radio" name="m2_resp" value="0">Não, alguns ficam sem resposta</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Existe um processo de atendimento definido (roteiro, etapas)?</div>
+      <div class="radio-group" data-q="m2_proc">
+        <label><input type="radio" name="m2_proc" value="3">Sim, documentado</label>
+        <label><input type="radio" name="m2_proc" value="2">Sim, mas na cabeça</label>
+        <label><input type="radio" name="m2_proc" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Já perdeu venda por demora na resposta?</div>
+      <div class="radio-group" data-q="m2_perda">
+        <label><input type="radio" name="m2_perda" value="3">Não que eu saiba</label>
+        <label><input type="radio" name="m2_perda" value="1">Talvez</label>
+        <label><input type="radio" name="m2_perda" value="0">Sim, com certeza</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- M3 -->
+<div class="block" id="b3">
+  <div class="block-header" onclick="toggle('b3')">
+    <span class="block-tag">M3</span>
+    <div><div class="block-title">Funil de Vendas</div><div class="block-insight">Sem funil = sem previsibilidade</div></div>
+    <span class="block-chevron" id="chev-b3">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b3">
+    <div>
+      <div class="q-label">Tem um funil de vendas mapeado?</div>
+      <div class="radio-group" data-q="m3_funil">
+        <label><input type="radio" name="m3_funil" value="3">Sim, com etapas claras</label>
+        <label><input type="radio" name="m3_funil" value="1">Mais ou menos</label>
+        <label><input type="radio" name="m3_funil" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Conhece a taxa de conversão de leads em vendas?</div>
+      <div class="q-hint">Ex.: de 100 contatos, 20 compraram = 20% de conversão.</div>
+      <div class="radio-group" data-q="m3_conv">
+        <label><input type="radio" name="m3_conv" value="3">Sim, acompanho</label>
+        <label><input type="radio" name="m3_conv" value="1">Tenho uma estimativa</label>
+        <label><input type="radio" name="m3_conv" value="0">Não tenho ideia</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Sabe em qual etapa do funil a maioria dos leads abandona?</div>
+      <div class="radio-group" data-q="m3_etapa">
+        <label><input type="radio" name="m3_etapa" value="3">Sim, sei identificar</label>
+        <label><input type="radio" name="m3_etapa" value="1">Tenho uma suspeita</label>
+        <label><input type="radio" name="m3_etapa" value="0">Não acompanho</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- M4 -->
+<div class="block" id="b4">
+  <div class="block-header" onclick="toggle('b4')">
+    <span class="block-tag">M4</span>
+    <div><div class="block-title">CRM e Organização</div><div class="block-insight">Sem controle = dinheiro esquecido</div></div>
+    <span class="block-chevron" id="chev-b4">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b4">
+    <div>
+      <div class="q-label">Usa alguma ferramenta para controlar contatos e negociações?</div>
+      <div class="radio-group" data-q="m4_crm">
+        <label><input type="radio" name="m4_crm" value="3">Sim, CRM dedicado</label>
+        <label><input type="radio" name="m4_crm" value="2">Planilha organizada</label>
+        <label><input type="radio" name="m4_crm" value="1">WhatsApp / anotações</label>
+        <label><input type="radio" name="m4_crm" value="0">Nada</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Qual percentual dos leads fica registrado?</div>
+      <div class="radio-group" data-q="m4_reg">
+        <label><input type="radio" name="m4_reg" value="3">+80%</label>
+        <label><input type="radio" name="m4_reg" value="2">50–80%</label>
+        <label><input type="radio" name="m4_reg" value="1">Menos de 50%</label>
+        <label><input type="radio" name="m4_reg" value="0">Quase nada</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Consegue acessar o histórico de um cliente antigo rapidamente?</div>
+      <div class="radio-group" data-q="m4_hist">
+        <label><input type="radio" name="m4_hist" value="3">Sim, sempre</label>
+        <label><input type="radio" name="m4_hist" value="1">Às vezes / depende</label>
+        <label><input type="radio" name="m4_hist" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Como está a organização do WhatsApp de atendimento?</div>
+      <div class="radio-group" data-q="m4_wpp">
+        <label><input type="radio" name="m4_wpp" value="3">Organizado, com etiquetas</label>
+        <label><input type="radio" name="m4_wpp" value="1">Mais ou menos</label>
+        <label><input type="radio" name="m4_wpp" value="0">Bagunçado</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- M5 -->
+<div class="block" id="b5">
+  <div class="block-header" onclick="toggle('b5')">
+    <span class="block-tag">M5</span>
+    <div><div class="block-title">Script e Técnica de Venda</div><div class="block-insight">Sem script = atendimento inconsistente</div></div>
+    <span class="block-chevron" id="chev-b5">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b5">
+    <div>
+      <div class="q-label">Usa um roteiro ou padrão nas mensagens de atendimento?</div>
+      <div class="radio-group" data-q="m5_script">
+        <label><input type="radio" name="m5_script" value="3">Sim, documentado</label>
+        <label><input type="radio" name="m5_script" value="2">Sim, mas na cabeça</label>
+        <label><input type="radio" name="m5_script" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Faz perguntas para entender o motivo ou momento da compra?</div>
+      <div class="radio-group" data-q="m5_perguntas">
+        <label><input type="radio" name="m5_perguntas" value="3">Sempre</label>
+        <label><input type="radio" name="m5_perguntas" value="1">Às vezes</label>
+        <label><input type="radio" name="m5_perguntas" value="0">Raramente</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Como lida com objeções (preço, tempo, "preciso pensar")?</div>
+      <div class="radio-group" data-q="m5_obj">
+        <label><input type="radio" name="m5_obj" value="3">Preparo respostas antes</label>
+        <label><input type="radio" name="m5_obj" value="1">Improviso na hora</label>
+        <label><input type="radio" name="m5_obj" value="0">Aceito e encerro</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Tem uma técnica definida para o momento do fechamento?</div>
+      <div class="radio-group" data-q="m5_fech">
+        <label><input type="radio" name="m5_fech" value="3">Sim, uso gatilhos e urgência</label>
+        <label><input type="radio" name="m5_fech" value="1">Peço para o cliente decidir</label>
+        <label><input type="radio" name="m5_fech" value="0">Não tenho técnica</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- M6 -->
+<div class="block" id="b6">
+  <div class="block-header" onclick="toggle('b6')">
+    <span class="block-tag">M6</span>
+    <div><div class="block-title">Follow-up</div><div class="block-insight">Sem follow-up = dinheiro deixado na mesa</div></div>
+    <span class="block-chevron" id="chev-b6">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b6">
+    <div>
+      <div class="q-label">Tem uma cadência de follow-up para quem não fechou?</div>
+      <div class="radio-group" data-q="m6_cad">
+        <label><input type="radio" name="m6_cad" value="3">Sim, com dias e canais definidos</label>
+        <label><input type="radio" name="m6_cad" value="1">Faço quando lembro</label>
+        <label><input type="radio" name="m6_cad" value="0">Não faço</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Usa mais de um canal no follow-up (WhatsApp, e-mail, ligação)?</div>
+      <div class="radio-group" data-q="m6_canal">
+        <label><input type="radio" name="m6_canal" value="3">Sim, multicanal</label>
+        <label><input type="radio" name="m6_canal" value="1">Só WhatsApp</label>
+        <label><input type="radio" name="m6_canal" value="0">Não faço follow-up</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Tem mensagens prontas para o follow-up?</div>
+      <div class="radio-group" data-q="m6_msg">
+        <label><input type="radio" name="m6_msg" value="3">Sim, templates prontos</label>
+        <label><input type="radio" name="m6_msg" value="1">Escrevo na hora</label>
+        <label><input type="radio" name="m6_msg" value="0">Não faço follow-up</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Sabe qual percentual das vendas vem do follow-up?</div>
+      <div class="radio-group" data-q="m6_pct">
+        <label><input type="radio" name="m6_pct" value="3">Sim, monitoro</label>
+        <label><input type="radio" name="m6_pct" value="1">Não meço</label>
+        <label><input type="radio" name="m6_pct" value="0">Não faço follow-up</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- M7 -->
+<div class="block" id="b7">
+  <div class="block-header" onclick="toggle('b7')">
+    <span class="block-tag">M7</span>
+    <div><div class="block-title">Métricas e KPIs</div><div class="block-insight">Sem números = gestão no escuro</div></div>
+    <span class="block-chevron" id="chev-b7">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b7">
+    <div>
+      <div class="q-label">Conhece o CAC (custo por cliente adquirido)?</div>
+      <div class="radio-group" data-q="m7_cac">
+        <label><input type="radio" name="m7_cac" value="3">Sim</label>
+        <label><input type="radio" name="m7_cac" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Conhece o LTV (valor que o cliente gera ao longo do tempo)?</div>
+      <div class="radio-group" data-q="m7_ltv">
+        <label><input type="radio" name="m7_ltv" value="3">Sim</label>
+        <label><input type="radio" name="m7_ltv" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Analisa os resultados comerciais com qual frequência?</div>
+      <div class="radio-group" data-q="m7_freq">
+        <label><input type="radio" name="m7_freq" value="3">Semanalmente</label>
+        <label><input type="radio" name="m7_freq" value="2">Mensalmente</label>
+        <label><input type="radio" name="m7_freq" value="1">Raramente</label>
+        <label><input type="radio" name="m7_freq" value="0">Nunca</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Tem uma meta de taxa de conversão definida?</div>
+      <div class="radio-group" data-q="m7_meta">
+        <label><input type="radio" name="m7_meta" value="3">Sim, com número claro</label>
+        <label><input type="radio" name="m7_meta" value="1">Tenho uma ideia</label>
+        <label><input type="radio" name="m7_meta" value="0">Não</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- M8 -->
+<div class="block" id="b8">
+  <div class="block-header" onclick="toggle('b8')">
+    <span class="block-tag">M8</span>
+    <div><div class="block-title">Rotina Comercial</div><div class="block-insight">Sem rotina = resultado por sorte</div></div>
+    <span class="block-chevron" id="chev-b8">▼</span>
+  </div>
+  <div class="block-body collapsed" id="body-b8">
+    <div>
+      <div class="q-label">Tem uma rotina comercial definida (horários, tarefas diárias)?</div>
+      <div class="radio-group" data-q="m8_rotina">
+        <label><input type="radio" name="m8_rotina" value="3">Sim, cumpro diariamente</label>
+        <label><input type="radio" name="m8_rotina" value="1">Mais ou menos</label>
+        <label><input type="radio" name="m8_rotina" value="0">Não</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Quantas horas por dia são dedicadas ativamente a vendas?</div>
+      <div class="radio-group" data-q="m8_horas">
+        <label><input type="radio" name="m8_horas" value="3">3h ou mais</label>
+        <label><input type="radio" name="m8_horas" value="2">1–2h</label>
+        <label><input type="radio" name="m8_horas" value="1">Menos de 1h</label>
+        <label><input type="radio" name="m8_horas" value="0">Não separo tempo para isso</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Revisa o pipeline de vendas diariamente?</div>
+      <div class="radio-group" data-q="m8_pipe">
+        <label><input type="radio" name="m8_pipe" value="3">Sim, todo dia</label>
+        <label><input type="radio" name="m8_pipe" value="1">Às vezes</label>
+        <label><input type="radio" name="m8_pipe" value="0">Não tenho pipeline</label>
+      </div>
+    </div>
+    <div>
+      <div class="q-label">Cobra metas e resultados da equipe ou de si mesmo?</div>
+      <div class="radio-group" data-q="m8_cobr">
+        <label><input type="radio" name="m8_cobr" value="3">Sim, com frequência</label>
+        <label><input type="radio" name="m8_cobr" value="1">Às vezes</label>
+        <label><input type="radio" name="m8_cobr" value="0">Não</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="btn-generate" onclick="generate()">Gerar Diagnóstico</button>
+
+<div class="result" id="result">
+  <div class="result-identity" id="result-identity"></div>
+  <div class="score-circle" id="sc-circle">
+    <div class="score-num" id="sc-num">0</div>
+    <div class="score-label">de 100</div>
+  </div>
+  <div class="score-status" id="sc-status"></div>
+  <div class="score-desc" id="sc-desc"></div>
+  <div class="section-title">Score por bloco</div>
+  <div class="blocks-grid" id="blocks-grid"></div>
+  <div class="section-title" style="margin-top:8px">Principais dores identificadas</div>
+  <div id="pains"></div>
+  <div class="section-title" style="margin-top:8px">Sugestões prioritárias</div>
+  <div id="sugs"></div>
+  <div class="btn-row">
+    <button class="btn-pdf" onclick="exportPDF()">⬇ Exportar PDF</button>
+    <button class="btn-reset" onclick="reset()">Refazer diagnóstico</button>
+  </div>
+</div>
+
+</div>
+<script>
+const blocks=[{id:'b1',name:'Mentalidade',qs:['m1_meta','m1_como','m1_ticket','m1_leads','m1_prev'],maxPts:30},{id:'b2',name:'SLA / Velocidade',qs:['m2_tempo','m2_resp','m2_proc','m2_perda'],maxPts:30},{id:'b3',name:'Funil de Vendas',qs:['m3_funil','m3_conv','m3_etapa'],maxPts:24},{id:'b4',name:'CRM / Organização',qs:['m4_crm','m4_reg','m4_hist','m4_wpp'],maxPts:30},{id:'b5',name:'Script / Técnica',qs:['m5_script','m5_perguntas','m5_obj','m5_fech'],maxPts:30},{id:'b6',name:'Follow-up',qs:['m6_cad','m6_canal','m6_msg','m6_pct'],maxPts:33},{id:'b7',name:'Métricas / KPIs',qs:['m7_cac','m7_ltv','m7_freq','m7_meta'],maxPts:27},{id:'b8',name:'Rotina Comercial',qs:['m8_rotina','m8_horas','m8_pipe','m8_cobr'],maxPts:36}];
+const weights={m1_meta:2,m1_como:2,m1_ticket:1,m1_leads:2,m1_prev:3,m2_tempo:3,m2_resp:2,m2_proc:2,m2_perda:2,m3_funil:3,m3_conv:3,m3_etapa:2,m4_crm:3,m4_reg:2,m4_hist:2,m4_wpp:2,m5_script:3,m5_perguntas:2,m5_obj:3,m5_fech:2,m6_cad:3,m6_canal:2,m6_msg:2,m6_pct:2,m7_cac:2,m7_ltv:2,m7_freq:2,m7_meta:2,m8_rotina:3,m8_horas:2,m8_pipe:2,m8_cobr:2};
+function updRange(el,id){document.getElementById(id).textContent=el.value;updateProgress();}
+function toggle(id){const body=document.getElementById('body-'+id),chev=document.getElementById('chev-'+id);if(body.classList.contains('collapsed')){body.classList.remove('collapsed');chev.textContent='▲';}else{body.classList.add('collapsed');chev.textContent='▼';}}
+function getVal(q){const radio=document.querySelector('input[name="'+q+'"]:checked');if(radio)return parseFloat(radio.value);const range=document.querySelector('input[data-q="'+q+'"]');if(range)return parseFloat(range.value);return null;}
+function updateProgress(){const allQs=Object.keys(weights);let answered=0;allQs.forEach(q=>{if(getVal(q)!==null)answered++;});document.getElementById('prog').style.width=Math.round(answered/allQs.length*100)+'%';}
+document.querySelectorAll('.radio-group').forEach(grp=>{grp.querySelectorAll('label').forEach(lbl=>{lbl.addEventListener('click',function(){grp.querySelectorAll('label').forEach(l=>l.classList.remove('sel'));this.classList.add('sel');setTimeout(updateProgress,50);});});});
+
+function generate(){
+  const pains=[],sugs=[],blockScores=[];
+  let totalRaw=0,totalMax=0;
+  blocks.forEach(bl=>{
+    let raw=0,max=0;
+    bl.qs.forEach(q=>{const w=weights[q]||1,v=getVal(q),isRange=!!document.querySelector('input[data-q="'+q+'"][type="range"]'),qMax=isRange?w*10:w*3;max+=qMax;if(v!==null)raw+=isRange?v*w:v*w;});
+    const pct=Math.round(raw/max*100);
+    blockScores.push({name:bl.name,pct,raw,max});
+    totalRaw+=raw;totalMax+=max;
+  });
+  const score=Math.round(totalRaw/totalMax*100);
+  blockScores.forEach(bs=>{
+    const rules={
+      'Mentalidade':{p40:{pain:'Ausência de metas e previsibilidade comercial. A operação funciona no improviso.',sug:'Defina uma meta mensal em R$, calcule o ticket médio e descubra quantos leads são necessários para bater a meta.'},p65:{pain:'Metas existem, mas falta clareza nos números e previsibilidade.',sug:'Conecte a meta de faturamento à taxa de conversão para saber quantos leads são necessários por dia.'}},
+      'SLA / Velocidade':{p40:{pain:'Tempo de resposta alto. Leads estão esfriando antes do primeiro contato.',sug:'Implante SLA máximo de 10 minutos para o primeiro contato e crie um processo de atendimento com etapas claras.'},p65:{pain:'Atendimento ocorre, mas sem consistência no tempo de resposta.',sug:'Padronize o SLA: defina horários de atendimento e use respostas rápidas no WhatsApp.'}},
+      'Funil de Vendas':{p40:{pain:'Não há funil mapeado. Impossível saber onde os leads estão se perdendo.',sug:'Mapeie as etapas (contato → qualificação → proposta → fechamento) e meça a conversão em cada uma.'},p65:{pain:'Funil existe na cabeça, mas não é monitorado com dados.',sug:'Documente as etapas e registre quantos leads passam por cada uma. Uma planilha simples resolve.'}},
+      'CRM / Organização':{p40:{pain:'Leads e clientes não estão sendo registrados. Histórico e oportunidades se perdem.',sug:'Comece com planilha organizada ou CRM gratuito (HubSpot Free). Registre 100% dos contatos.'},p65:{pain:'Organização parcial. Alguns leads e oportunidades estão se perdendo.',sug:'Padronize o registro: defina campos obrigatórios (nome, interesse, status, próxima ação) para cada contato.'}},
+      'Script / Técnica':{p40:{pain:'Atendimento inconsistente. Cada contato recebe uma experiência diferente.',sug:'Crie um script padrão com perguntas abertas, contorno das principais objeções e técnica de fechamento definida.'},p65:{pain:'Script existe, mas não está documentado e pode variar entre atendimentos.',sug:'Documente o script atual, inclua variações para as 3 objeções mais comuns e treine consistência.'}},
+      'Follow-up':{p40:{pain:'Leads que não fecharam no primeiro contato estão sendo abandonados.',sug:'Crie cadência de 3–5 tentativas em dias alternados usando WhatsApp com variações de abordagem.'},p65:{pain:'Follow-up acontece, mas de forma reativa e sem cadência definida.',sug:'Crie cadência fixa: dia 1, dia 3, dia 7. Escreva templates para cada momento da sequência.'}},
+      'Métricas / KPIs':{p40:{pain:'Decisões sendo tomadas sem dados. Impossível identificar o que está funcionando.',sug:'Comece medindo: taxa de conversão, CAC e LTV. Uma planilha semanal já é suficiente para começar.'},p65:{pain:'Algumas métricas são acompanhadas, mas sem frequência ou sistema.',sug:'Crie um painel semanal com no mínimo 3 indicadores: leads, conversão e receita gerada.'}},
+      'Rotina Comercial':{p40:{pain:'Vendas dependem do humor do dia. Não há constância no processo comercial.',sug:'Bloqueie pelo menos 2h/dia exclusivamente para vendas: follow-up, prospecção e revisão do pipeline.'},p65:{pain:'Rotina existe, mas não é seguida com disciplina consistente.',sug:'Crie checklist diário de 5 itens comerciais e revise no final do dia o que foi ou não executado.'}}
+    };
+    if(rules[bs.name]){
+      if(bs.pct<40){pains.push(rules[bs.name].p40.pain);sugs.push(rules[bs.name].p40.sug);}
+      else if(bs.pct<65){pains.push(rules[bs.name].p65.pain);sugs.push(rules[bs.name].p65.sug);}
+    }
+  });
+  let color,status,desc;
+  if(score>=75){color='#16a34a';status='Operação comercial sólida';desc='Boas práticas estão em uso. O foco agora é otimização e escala — pequenos ajustes podem gerar ganhos expressivos.';}
+  else if(score>=50){color='#d97706';status='Potencial não aproveitado';desc='A base existe, mas há buracos importantes no processo. Fechar essas lacunas pode dobrar os resultados sem aumentar investimento em tráfego.';}
+  else if(score>=30){color='#dc2626';status='Processo comercial frágil';desc='A operação funciona no improviso. Construir método e rotina é urgente — o tráfego está gerando oportunidades que estão sendo desperdiçadas.';}
+  else{color='#dc2626';status='Ausência de processo comercial';desc='Não há estrutura comercial. Investir em tráfego agora é jogar dinheiro fora. O primeiro passo é construir o processo básico antes de escalar.';}
+
+  // Identity block
+  const nome = document.getElementById('inp-nome').value.trim();
+  const empresa = document.getElementById('inp-empresa').value.trim();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const idEl = document.getElementById('result-identity');
+  if(nome || empresa){
+    idEl.style.display='block';
+    idEl.innerHTML = (nome ? `<div class="ri-name">${nome}</div>` : '') +
+      (empresa ? `<div class="ri-company">${empresa}</div>` : '') +
+      `<div class="ri-date">Diagnóstico realizado em ${dateStr}</div>`;
+  } else {
+    idEl.style.display='none';
+  }
+
+  const circ=document.getElementById('sc-circle');
+  circ.style.borderColor=color;
+  document.getElementById('sc-num').style.color=color;
+  document.getElementById('sc-num').textContent=score;
+  document.getElementById('sc-status').textContent=status;
+  document.getElementById('sc-status').style.color=color;
+  document.getElementById('sc-desc').textContent=desc;
+  const grid=document.getElementById('blocks-grid');
+  grid.innerHTML='';
+  blockScores.sort((a,b)=>a.pct-b.pct).forEach(bs=>{
+    const c=bs.pct>=70?'#16a34a':bs.pct>=40?'#d97706':'#dc2626';
+    grid.innerHTML+=`<div class="block-score"><div class="bs-head"><span class="bs-name">${bs.name}</span><span class="bs-pct" style="color:${c}">${bs.pct}%</span></div><div class="bs-bar"><div class="bs-fill" style="width:${bs.pct}%;background:${c}"></div></div></div>`;
+  });
+  const painEl=document.getElementById('pains');
+  painEl.innerHTML='';
+  if(pains.length===0){painEl.innerHTML='<div class="sug-item"><span class="icon">✓</span>Nenhuma dor crítica identificada nos blocos avaliados.</div>';}
+  else{pains.slice(0,6).forEach(p=>{painEl.innerHTML+=`<div class="pain-item"><span class="icon">!</span>${p}</div>`;});}
+  const sugEl=document.getElementById('sugs');
+  sugEl.innerHTML='';
+  sugs.slice(0,6).forEach(s=>{sugEl.innerHTML+=`<div class="sug-item"><span class="icon">→</span>${s}</div>`;});
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function exportPDF(){
+  window.print();
+}
+
+function reset(){
+  document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.querySelectorAll('.radio-group label').forEach(l=>l.classList.remove('sel'));
+  document.querySelectorAll('input[type=range]').forEach(r=>{r.value=5;const el=document.getElementById('val_'+r.dataset.q);if(el)el.textContent='5';});
+  document.getElementById('result').style.display='none';
+  document.getElementById('prog').style.width='0%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
